@@ -14,7 +14,7 @@ def parsehistory( soup ):
 	result = []
 	
 	group = soup.find('a',{'class':['groupadmin_header_name','hoverunderline']}).get('href').rpartition('/')[2]
-	for event in soup.findAll("div",{'class':['historyItem','historyItemB']}):
+	for event in soup.findAll(lambda ev: ev.name=="div" and (ev.get('class') == ['historyItem'] or ev.get('class') == ['historyItemb'])):
 		type = event.find('span','historyShort').contents[0]
 		date = event.find('span','historyDate').contents[0]
 		try:
