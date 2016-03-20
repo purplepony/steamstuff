@@ -8,7 +8,7 @@ if len(sys.argv)<=1:
 def steam3ID264 ( id3 ):
 # https://developer.valvesoftware.com/wiki/SteamID
 # assuming public universe and an "individual" type account:
- return 1 << 52 | 1 << 56 | 1 << 32 | id3
+ return str(1 << 52 | 1 << 56 | 1 << 32 | id3)
 
 def parsehistory( soup ):
 	result = []
@@ -19,22 +19,24 @@ def parsehistory( soup ):
 		date = event.find('span','historyDate').contents[0]
 		try:
 			who = event.find('a',{'class':'whiteLink'})['data-miniprofile']
-			who64 = steam3ID264(who)
+			who64 = steam3ID264(long(who))
 		except IndexError:
 			who="-"
 			who64="-"
 		try:
 			actor = event.findAll('a',{'class':'whiteLink'})[1]['data-miniprofile']
-			actor64 = steam3ID264(actor)
+			actor64 = steam3ID264(long(actor))
 		except IndexError:
 			actor = "-"
-		who = "-" who=="-" else "[U:1:{}]".format(who)
+			actor64 = "-"
+		
+		who = "-" if who=="-" else "[U:1:{}]".format(who)
 		actor = "-" if actor=="-" else "[U:1:{}]".format(actor)
-		print "{};{};{};{};{}".format(type,date,who,actor,group)
+		print "{};{};{};{};{};{};{}".format(type,date,who,who64,actor,actor64,group)
 	return []
 	
 data=[]
-print "event;time;user;actor;group"
+print "event;time;user;user_id64;actor;actor_id64;group"
 for fh in sys.argv[1:]:
 	soup = BeautifulSoup(open(fh,'r'))
 	data = data + parsehistory(soup)
