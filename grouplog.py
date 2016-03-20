@@ -20,7 +20,7 @@ def parsehistory( soup ):
 		try:
 			who = event.find('a',{'class':'whiteLink'})['data-miniprofile']
 			who64 = steam3ID264(long(who))
-		except IndexError:
+		except (IndexError, TypeError) as e:
 			who="-"
 			who64="-"
 		try:
