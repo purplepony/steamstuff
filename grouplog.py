@@ -20,12 +20,14 @@ def parsehistory( soup ):
 		try:
 			who = event.find('a',{'class':'whiteLink'})['data-miniprofile']
 			who64 = steam3ID264(long(who))
+			# who64 = "[url=https://steamrep.com/profiles/{}]{}[/url]".format(str(who64),str(who64))
 		except (IndexError, TypeError) as e:
 			who="-"
 			who64="-"
 		try:
 			actor = event.findAll('a',{'class':'whiteLink'})[1]['data-miniprofile']
 			actor64 = steam3ID264(long(actor))
+			# actor64 = "[url=https://steamrep.com/profiles/{}]{}[/url]".format(str(actor64),str(actor64))
 		except IndexError:
 			actor = "-"
 			actor64 = "-"
@@ -36,7 +38,7 @@ def parsehistory( soup ):
 	return []
 	
 data=[]
-print "event;time;user;user_id64;actor;actor_id64;group"
+# print "event;time;user;user_id64;actor;actor_id64;group"
 for fh in sys.argv[1:]:
 	soup = BeautifulSoup(open(fh,'r'))
 	data = data + parsehistory(soup)
