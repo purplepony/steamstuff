@@ -54,7 +54,7 @@ do
 		if [ $download -eq 0 ]; then rm $workingDir$index.html 2>/dev/null; fi
 		break
 	else
-		cat $workingDir${outputFiles}_page$index.log >> $destination$outputFiles.csv
+		cat $workingDir${outputFiles}_page$index.csv >> $destination$outputFiles.csv
 		echo "saved to $workingDir${outputFiles}_page$index.log."
 		if [ $download -eq 0 ]; then rm $workingDir$index.html 2>>$logFile; else echo "Saved raw HTML to $workingDir$index.html and results to $workingDir${outputFiles}_page$index.csv">>$logFile; fi
 		if [ $logging -eq 1 ]; then echo -e "Appended results from page $index to $destination$outputFiles.csv"; fi
