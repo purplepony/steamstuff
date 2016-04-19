@@ -8,6 +8,7 @@ destination="" # Location to save final CSV list
 download=0 # Specify whether to save raw HTML downloads of group history pages for debugging (default 0)
 logging=0 # Specify whether to keep per-page CSV and debug logs (default 0)
 logFile=$workingDir"grouplogger.log" # Log file name and location (if debugging is enabled)
+python="$(which 'python2.7')" # Look for Python 2.7 binary
 
 if [ $logging -eq 1 ]; then echo "Starting script \"$0 $1 $2\"" >> $logFile; else logFile="/dev/null"; fi	
 if [ -z ${groupID} ]; then groupID=$1;fi # User didn't fill in Group ID variable, check 2nd command-line parameter instead
@@ -28,8 +29,10 @@ elif [ ! -e $cookieFile ]; then # File doesn't exist
 fi # No fatal errors, continuing.
 if [ -z ${filePrefix} ]; then outputFiles=$groupID; else outputFiles=$filePrefix;fi # User didn't fill in above variable for cookie file, try 3rd command-line parameter instead
 echo "Searching Steam group history for https://steamcommunity.com/groups/$groupID"
-rm "$workingDir$outputFiles.csv" 2>/dev/null
-touch "$workingDir$outputFiles.csv"
+gid=$(wget https://steamcommunity.com/groups/$groupID/memberslistxml/?xml=1 -a $logFile -O- 2>>$logFile | grep groupID64 | sed -ne '/<groupID64>/s#\s*<[^>]*>\s*##gp')
+echo "Found ID64 https://steamcommunity.com/gid/$gid"
+rm "$workingDir$outputFiles.csv" 2>>$logFile
+echo "Group History for https://steamcommunity.com/gid/$gid with vanity URL https://steamcommunity.com/groups/$groupID" > "$destination$outputFiles.csv" 2>>$logFile
 maxPage=$1 # Need to check how many pages of history there are first
 index=0
 until [ $? -ne 0 ]
@@ -40,7 +43,7 @@ do
 	wget --load-cookies $cookieFile --keep-session-cookies https://steamcommunity.com/groups/$groupID/history\?p=$index -O $workingDir$index.html -a $logFile
 	echo -n "finding Steam IDs... "
 	if [ $logging -eq 1 ]; then echo "Finding Steam IDs for page $index" >> $logFile; fi
-	/usr/bin/python2.7 grouplog.py $workingDir$index.html > "$workingDir${outputFiles}_page$index.csv" 2>>$logFile
+	eval $python grouplog.py $workingDir$index.html > "$workingDir${outputFiles}_page$index.csv" 2>>$logFile
 	if [ $? -ne 0 ]; then # Pyhton script will throw error when given empty page, assume this means last page of history
 		if [ $index -gt 2 ]; then # Expected error after last page of history indicates end of history
 			echo "reached end of history."
@@ -55,11 +58,11 @@ do
 		break
 	else
 		cat $workingDir${outputFiles}_page$index.csv >> $destination$outputFiles.csv
-		echo "saved to $workingDir${outputFiles}_page$index.csv."
+		if [ $logging -eq 1 ]; then echo -e "Appended results from page $index to $destination$outputFiles.csv" >> $logFile; fi
+		if [ $download -eq 0 ]; then rm $workingDir${outputFiles}_page$index.csv 2>>$logFile; echo "done."; else echo "saved to $workingDir${outputFiles}_page$index.csv."; fi
 		if [ $download -eq 0 ]; then rm $workingDir$index.html 2>>$logFile; else echo "Saved raw HTML to $workingDir$index.html and results to $workingDir${outputFiles}_page$index.csv">>$logFile; fi
-		if [ $logging -eq 1 ]; then echo -e "Appended results from page $index to $destination$outputFiles.csv"; fi
 	fi
 	if [ $logging -eq 1 ]; then echo "Python script exited with status 0" >> $logFile; fi
 done
 if [ $logging -eq 1 ]; then echo "Found `cut -d ';' -f 4 $destination$outputFiles.csv | sort -n | uniq | wc -l` Steam IDs across $((index-1)) pages and exited script without errors" >> $logFile; fi
-echo "Combined group history (with `cut -d ';' -f 4 $destination$outputFiles.csv | sort -n | uniq | wc -l` unique users) saved to $outputFiles.csv"
+echo "Combined group history ($(( index-1 )) pages with `cut -d ';' -f 4 $destination$outputFiles.csv | sort -n | uniq | wc -l` unique users) saved to $destination$outputFiles.csv"
