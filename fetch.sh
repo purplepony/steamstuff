@@ -96,7 +96,7 @@ else # None of the above apply. This may happen if Steam's user interface change
 		echo "No error message was found. Attempting to continue..." >> $logFile
 	fi
 fi
-
+if [ $download -eq 0 ]; then rm $workingDir$groupID.html 2>/dev/null; fi
 
 echo "Searching Steam group history for $groupURL"
 gid=$(wget $groupURL/memberslistxml/?xml=1 -a $logFile -O- 2>>$logFile | grep groupID64 | sed -ne '/<groupID64>/s#\s*<[^>]*>\s*##gp')
