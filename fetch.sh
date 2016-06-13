@@ -103,7 +103,6 @@ gid=$(wget $groupURL/memberslistxml/?xml=1 -a $logFile -O- 2>>$logFile | grep gr
 echo "Found ID64 https://steamcommunity.com/gid/$gid"
 rm "$workingDir$outputFiles.csv" 2>>$logFile
 echo "Group History for https://steamcommunity.com/gid/$gid with vanity URL $groupURL" > "$destination$outputFiles.csv" 2>>$logFile
-maxPage=$1 # Need to check how many pages of history there are first
 index=0
 until [ $? -ne 0 ]
 do
